@@ -41,7 +41,7 @@ class ApiController extends Controller
 
     /**
 	*	Function to return instance of booking
-	*/
+         */
     public function booking()
     {
     	return $this->booking;
