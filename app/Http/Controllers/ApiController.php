@@ -88,19 +88,25 @@ class ApiController extends Controller
     }
 
 
-    public function testhash()
+    public function testhash(Request $request)
     {
-        return response()->json($this->request()->password);
-        // return response()->json($this->hash($this->request()->password,env("HASH_KEY")));
+        $hash = $this->hash->encrypt($request->password,env("HASH_KEY"));
+        $original_data = $this->hash->decrypt($hash,env("HASH_KEY"));
+        $result[] = [
+            'hash' => $hash,
+            'original_data' => $original_data
+        ];
+
+        return response()->json($result);
     }
 
     /**
 	*	Function for authenticate user for login
 	*	@param Instance of Request
 	*/
-    public function login()
+    public function login(Request $request)
     {
-    	if (strlen($this->request()->email) <= 0) {
+    	if (strlen($request->email) <= 0) {
             
             $response['result'] = [
                 'status' => false,
@@ -110,7 +116,7 @@ class ApiController extends Controller
             return response()->json($response);
             exit();
         }
-        else if ($this->request()->password <= 0) {
+        else if ($request->password <= 0) {
             
             $response['result'] = [
                 'status' => false,
@@ -122,7 +128,7 @@ class ApiController extends Controller
         }
         else{
 
-            $check = App\Models\User::where('email',$this->request()->email);
+            $check = App\Models\User::where('email',$request->email);
         }
     	
     }
@@ -131,10 +137,10 @@ class ApiController extends Controller
 	*	Function to create new user record
 	*	@param Instance of Request
 	*/
-    public function createUser()
+    public function createUser(Request $request)
     {
         
-        if (strlen($this->request()->name) <= 0) {
+        if (strlen($request->name) <= 0) {
             
             $response['result'] = [
                 'status' => false,
@@ -144,7 +150,7 @@ class ApiController extends Controller
             return response()->json($response);
             exit();
         }
-        else if ($this->request()->email <= 0) {
+        else if ($request->email <= 0) {
             
             $response['result'] = [
                 'status' => false,
@@ -154,7 +160,7 @@ class ApiController extends Controller
             return response()->json($response);
             exit();
         }
-        else if ($this->request()->password <= 0) {
+        else if ($request->password <= 0) {
             
             $response['result'] = [
                 'status' => false,
@@ -166,7 +172,7 @@ class ApiController extends Controller
         }
         else{
 
-            $check = App\Models\User::where('email', $this->request()->email);
+            $check = App\Models\User::where('email', $request->email);
 
             if (count($check) > 0) {
                 
@@ -180,9 +186,9 @@ class ApiController extends Controller
             }
             else{
 
-                $this->user()->name = $this->request()->name;
-                $this->user()->email = $this->request()->email;
-                $this->user()->password = $this->hash($this->request()->password,env("HASH_KEY"));
+                $this->user()->name = $request->name;
+                $this->user()->email = $request->email;
+                $this->user()->password = $this->hash->encrypt($request->password,env("HASH_KEY"));
 
                 if ($this->user()->save()) {
                     
