@@ -90,7 +90,8 @@ class ApiController extends Controller
 
     public function testhash()
     {
-        return response()->json($this->hash($this->request()->password,env("HASH_KEY")));
+        return response()->json($this->request()->password);
+        // return response()->json($this->hash($this->request()->password,env("HASH_KEY")));
     }
 
     /**
