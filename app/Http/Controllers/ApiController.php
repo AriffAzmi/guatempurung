@@ -121,7 +121,7 @@ class ApiController extends Controller
         }
         else{
 
-            $check = App\Models\User::where('email',$this->request()->email)
+            $check = App\Models\User::where('email',$this->request()->email);
         }
     	
     }
