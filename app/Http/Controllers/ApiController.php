@@ -8,6 +8,7 @@ use App\Http\Requests;
 use App\Models\Booking;
 use App\Models\BookingTransaction;
 use App\Models\User;
+use App\Encryption\Hash;
 
 class ApiController extends Controller
 {
@@ -30,6 +31,12 @@ class ApiController extends Controller
     protected $user;
 
     /**
+    *   Hash Encryption Instance
+    *   @var array
+    */
+    protected $hash;
+
+    /**
 	*	Set instance for each protected property
 	*/
     function __construct()
@@ -37,6 +44,7 @@ class ApiController extends Controller
     	$this->booking = new Booking();
     	$this->bookingTransaction = new BookingTransaction();
     	$this->user = new User();
+        $this->hash = new Hash();
     }
 
     /**
@@ -64,12 +72,57 @@ class ApiController extends Controller
     }
 
     /**
+    *   Function to return instance of http request
+    */    
+    public function request()
+    {
+        return (new Request());
+    }
+
+    /**
+    *   Function to return instance of Hash
+    */    
+    public function hash()
+    {
+        return $this->hash;
+    }
+
+
+    public function testhash()
+    {
+        return response()->json($this->hash($this->request()->password,env("HASH_KEY")));
+    }
+
+    /**
 	*	Function for authenticate user for login
 	*	@param Instance of Request
 	*/
-    public function login(Request $request)
+    public function login()
     {
-    	
+    	if (strlen($this->request()->email) <= 0) {
+            
+            $response['result'] = [
+                'status' => false,
+                'message' => "Required key email was not found or it was empty"
+            ];
+
+            return response()->json($response);
+            exit();
+        }
+        else if ($this->request()->password <= 0) {
+            
+            $response['result'] = [
+                'status' => false,
+                'message' => "Required key password was not found or it was empty"
+            ];
+
+            return response()->json($response);
+            exit();
+        }
+        else{
+
+            $check = App\Models\User::where('email',$this->request()->email)
+        }
     	
     }
     
@@ -77,10 +130,81 @@ class ApiController extends Controller
 	*	Function to create new user record
 	*	@param Instance of Request
 	*/
-    public function createUser(Request $request)
+    public function createUser()
     {
-    	
-    	
+        
+        if (strlen($this->request()->name) <= 0) {
+            
+            $response['result'] = [
+                'status' => false,
+                'message' => "Required key name was not found or it was empty"
+            ];
+
+            return response()->json($response);
+            exit();
+        }
+        else if ($this->request()->email <= 0) {
+            
+            $response['result'] = [
+                'status' => false,
+                'message' => "Required key email was not found or it was empty"
+            ];
+
+            return response()->json($response);
+            exit();
+        }
+        else if ($this->request()->password <= 0) {
+            
+            $response['result'] = [
+                'status' => false,
+                'message' => "Required key password was not found or it was empty"
+            ];
+
+            return response()->json($response);
+            exit();
+        }
+        else{
+
+            $check = App\Models\User::where('email', $this->request()->email);
+
+            if (count($check) > 0) {
+                
+                $response['result'] = [
+                    'status' => false,
+                    'message' => "This email was exist in the record"
+                ];
+
+                return response()->json($response);
+                exit();
+            }
+            else{
+
+                $this->user()->name = $this->request()->name;
+                $this->user()->email = $this->request()->email;
+                $this->user()->password = $this->hash($this->request()->password,env("HASH_KEY"));
+
+                if ($this->user()->save()) {
+                    
+                    $response['result'] = [
+                        'status' => false,
+                        'message' => "Successfully register"
+                    ];
+
+                    return response()->json($response);
+                    exit();
+                }
+                else{
+
+                    $response['result'] = [
+                        'status' => false,
+                        'message' => "Something error while registering your account"
+                    ];
+
+                    return response()->json($response);
+                    exit();   
+                }
+            }
+        }
     }
 
     /**
