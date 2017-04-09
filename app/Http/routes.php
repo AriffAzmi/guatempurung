@@ -16,4 +16,4 @@ Route::get('/', function () {
 });
 
 
-Route::post('/hash/',"ApiController@testhash");
+Route::post('/api/hash/',"ApiController@testhash");
