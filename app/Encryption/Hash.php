@@ -17,7 +17,7 @@ class Hash
 	    $encrypt_method = "AES-256-CBC";
 	    $secret_key = $secret;
 	    $secret_iv = hash("sha256", "noradanish");
-	    
+	   	
 	    // hash
 	    $key = hash('sha256', $secret_key);
 	    
