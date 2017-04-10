@@ -17,3 +17,6 @@ Route::get('/', function () {
 
 
 Route::post('/api/hash/',"ApiController@testhash");
+Route::post('/api/user/register',"ApiController@createUser");
+Route::post('/api/user/login',"ApiController@login");
+Route::post('/api/user/update',"ApiController@updateUser");
