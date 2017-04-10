@@ -90,8 +90,8 @@ class ApiController extends Controller
 
     public function testhash(Request $request)
     {
-        $hash = $this->hash->encrypt($request->password,env("HASH_KEY"));
-        $original_data = $this->hash->decrypt($hash,env("HASH_KEY"));
+        $hash = $this->hash()->encrypt($request->password,env("HASH_KEY"));
+        $original_data = $this->hash()->decrypt($hash,env("HASH_KEY"));
         $result[] = [
             'hash' => $hash,
             'original_data' => $original_data
@@ -116,7 +116,7 @@ class ApiController extends Controller
             return response()->json($response);
             exit();
         }
-        else if ($request->password <= 0) {
+        else if (strlen($request->password) <= 0) {
             
             $response['result'] = [
                 'status' => false,
@@ -128,7 +128,28 @@ class ApiController extends Controller
         }
         else{
 
-            $check = App\Models\User::where('email',$request->email);
+            $this->user()->email = $request->email;
+            $this->user()->password = $this->hash()->encrypt($request->password,env("HASH_KEY"));
+            $check = $this->user()->find();
+            
+            if (count($check) > 0) {
+                
+                $response['result'] = [
+                    'status' => true,
+                    $check
+                ];
+
+                return response()->json($response);
+            }
+            else{
+
+                $response['result'] = [
+                    'status' => false,
+                    'message' => 'Record not found'
+                ];
+
+                return response()->json($response);
+            }
         }
     	
     }
@@ -142,7 +163,7 @@ class ApiController extends Controller
         
         if (strlen($request->name) <= 0) {
             
-            $response['result'] = [
+            $response['result'][] = [
                 'status' => false,
                 'message' => "Required key name was not found or it was empty"
             ];
@@ -150,9 +171,9 @@ class ApiController extends Controller
             return response()->json($response);
             exit();
         }
-        else if ($request->email <= 0) {
+        else if (strlen($request->email) <= 0) {
             
-            $response['result'] = [
+            $response['result'][] = [
                 'status' => false,
                 'message' => "Required key email was not found or it was empty"
             ];
@@ -160,9 +181,9 @@ class ApiController extends Controller
             return response()->json($response);
             exit();
         }
-        else if ($request->password <= 0) {
+        else if (strlen($request->password) <= 0) {
             
-            $response['result'] = [
+            $response['result'][] = [
                 'status' => false,
                 'message' => "Required key password was not found or it was empty"
             ];
@@ -172,11 +193,11 @@ class ApiController extends Controller
         }
         else{
 
-            $check = App\Models\User::where('email', $request->email);
+            $check = $this->user()->ifExist($request->email);
 
-            if (count($check) > 0) {
+            if ($check[0]->total > 0) {
                 
-                $response['result'] = [
+                $response['result'][] = [
                     'status' => false,
                     'message' => "This email was exist in the record"
                 ];
@@ -192,7 +213,7 @@ class ApiController extends Controller
 
                 if ($this->user()->save()) {
                     
-                    $response['result'] = [
+                    $response['result'][] = [
                         'status' => false,
                         'message' => "Successfully register"
                     ];
@@ -202,7 +223,7 @@ class ApiController extends Controller
                 }
                 else{
 
-                    $response['result'] = [
+                    $response['result'][] = [
                         'status' => false,
                         'message' => "Something error while registering your account"
                     ];
@@ -220,8 +241,53 @@ class ApiController extends Controller
 	*/
     public function updateUser(Request $request)
     {
-    	
-    	
+    	if (strlen($request->id) <= 0) {
+            
+            $response['result'] = [
+                'status' => false,
+                'message' => "Required key id was not found or it was empty"
+            ];
+
+            return response()->json($response);
+            exit();
+        }
+        else{
+
+            $check = User::find($request->id);
+
+            if (count($check) > 0) {
+                
+                if (strlen($request->name) > 0) {
+                    
+                    $this->user()->name = $request->name;
+                }
+                else if(strlen($request->password) > 0){
+
+                    $this->user()->password = $this->hash->encrypt($request->password);
+                }
+                
+                if ($this->user()->save()) {
+                    
+                    $response['result'] = [
+                        'status' => true,
+                        'message' => "Successfully update user"
+                    ];
+
+                    return response()->json($response);
+                    exit();
+                }
+                else{
+
+                    $response['result'] = [
+                        'status' => false,
+                        'message' => "Something error while updating user record"
+                    ];
+
+                    return response()->json($response);
+                    exit();
+                }
+            }
+        }
     }
 
     /**
@@ -231,7 +297,41 @@ class ApiController extends Controller
     public function deleteUser(Request $request)
     {
     	
-    	
+    	$check = User::find($request->id);
+
+        if (count($check) > 0) {
+
+            if($this->user()->delete()){
+
+                $response['result'] = [
+                    'status' => true,
+                    'message' => "Successfully delete user"
+                ];
+
+                return response()->json($response);
+                exit();
+            }
+            else{
+
+                $response['result'] = [
+                    'status' => false,
+                    'message' => "Something error while deleting user record"
+                ];
+
+                return response()->json($response);
+                exit();
+            }
+        }
+        else{
+
+            $response['result'] = [
+                'status' => false,
+                'message' => "Record not found"
+            ];
+
+            return response()->json($response);
+            exit();
+        }
     }
 
     /**
